@@ -22,3 +22,9 @@ AI 코치·루틴 조정은 BAZE 게이트웨이로 실제 호출해 확인했�
 1. AI 답변 내용의 의학적 적절성 전문가 검토
 2. 실제 휴대폰 기기 확인
 3. 운동 내용 전문가 감수, 배포 방식 결정
+
+## 저장소
+- GitHub(비공개): https://github.com/han4223429/ongi-sanhu , 브랜치 main, 첫 커밋 a9198e4 (2026-11-23).
+- 커밋 작성자는 GitHub noreply 주소. `.env.local`(API 키)은 Git에서 제외되어 올라가지 않았다.
+- 푸시 이후 다른 도구(Codex backend 역할)가 보안 작업을 이어가고 있을 수 있다. 이어받기 전에 `git status`로 미커밋 변경을 확인할 것.
+- 공개 배포 전에는 docs/SECURITY-REVIEW.md의 트레이드오프(인증 없음, 인스턴스별 예산)를 먼저 해결한다.
