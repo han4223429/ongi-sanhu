@@ -1,0 +1,6 @@
+:HL["/ongi-sanhu/_next/static/chunks/0c3076fx0vy2e.css","style"]
+:HL["/ongi-sanhu/_next/static/media/38966a9f4c4e4038-s.p.3ktb9762wrwm5.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+3:[["children",{"s":"__PAGE__","h":160}]]
+2:[["children",{"s":{"n":"id","t":"d","k":"gentle-walk","s":[]},"h":96,"c":"$Q3"}]]
+1:[["children",{"s":"exercise","h":96,"c":"$Q2"}]]
+0:{"b":"mxMBfnKkT3b8IUt1snP_Y","t":{"t":{"s":"","h":84,"c":"$Q1"}}}
