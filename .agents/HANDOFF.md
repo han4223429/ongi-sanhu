@@ -28,3 +28,12 @@ AI 코치·루틴 조정은 BAZE 게이트웨이로 실제 호출해 확인했�
 - 커밋 작성자는 GitHub noreply 주소. `.env.local`(API 키)은 Git에서 제외되어 올라가지 않았다.
 - 푸시 이후 다른 도구(Codex backend 역할)가 보안 작업을 이어가고 있을 수 있다. 이어받기 전에 `git status`로 미커밋 변경을 확인할 것.
 - 공개 배포 전에는 docs/SECURITY-REVIEW.md의 트레이드오프(인증 없음, 인스턴스별 예산)를 먼저 해결한다.
+
+## 최신 보안·UX 인수인계 (Codex backend, 2026-11-23)
+
+- 보안 점검 → 수정 → 재검증 3회 완료. [backend 메모](notes/backend.md), [보안 기록](../docs/SECURITY-REVIEW.md), [화면 점검·9장 캡처](../docs/UX-REVIEW.md) 참조.
+- 71개 테스트, lint, typecheck, build 및 키 없는 실행 서버 smoke 18개 통과. 초기 29개 이후 보안 회귀 테스트 42개 추가.
+- API 경계·자원 한도, AI 응답 강제 검증, 위험 증상 처리, 개인정보 삭제/늦은 응답, 취소·확대·전송 안내를 수정함.
+- API 키는 .env.local/권한 600/Git 제외. AI 모듈 server-only. 소스·빌드·Git 이력에서 현재 키 값 일치 0. 재검사: `node scripts/check-secrets.mjs --history`.
+- 이번 보안 변경의 외부 유료 AI 실호출/실기기/배포 검증은 미실행. 기존 lead의 실호출 기록과 구분할 것.
+- 이 세션은 commit/push/배포/자격 증명 변경을 하지 않음. 다른 세션이 만든 저장소 이후의 최종 문서와 키 보호 변경은 git status로 확인.

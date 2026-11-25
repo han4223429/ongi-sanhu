@@ -1,3 +1,4 @@
+import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { json } from "./http";
 import { CATEGORY_LABEL, EXERCISES } from "./exercises";
