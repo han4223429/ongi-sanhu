@@ -13,7 +13,10 @@
 ## 배포 순서 (Vercel 기준, 약 15분)
 GitHub 저장소를 Vercel이 가져가는 방식이라 서버 코드와 키가 제3자 도구를 거치지 않는다. 값은 모두 Vercel 화면에 직접 입력한다.
 
-1. **Vercel에서 가져오기**: https://vercel.com/new 에서 "Continue with GitHub"로 로그인하고 `ongi-sanhu` 저장소를 Import한다.
+1. **Vercel에서 가져오기**: https://vercel.com/new 에서 "Continue with GitHub"로 `han4223429` 계정으로 로그인하고,
+   Import Git Repository 목록에서 `han4223429/ongi-sanhu`를 고른다.
+   저장소가 비공개라서 목록에 안 보이면 "Adjust GitHub App Permissions"에서 이 저장소 접근을 허용한다.
+   (`vercel.com/new/clone?repository-url=...` 형태의 링크는 공개 저장소용이라 이 저장소에는 쓰지 않는다.)
    환경변수는 일단 `ANTHROPIC_API_KEY`, `ANTHROPIC_BASE_URL`, `ANTHROPIC_MODEL`만 넣고 Deploy한다.
    이 단계의 앱은 AI가 닫힌 채로 뜬다(로그인 설정이 아직 없으므로). 배포 주소가 정해진다. 예: `https://ongi-sanhu.vercel.app`
 2. **사용량 저장소**: Vercel 프로젝트의 Storage 탭 → Marketplace → Upstash for Redis를 만들어 프로젝트에 연결한다.
