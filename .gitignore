@@ -45,3 +45,6 @@ next-env.d.ts
 
 # iOS wrapper build output
 /ios/build/
+
+# 정적 데모 빌드 결과
+/static-site/

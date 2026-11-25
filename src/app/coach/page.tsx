@@ -286,7 +286,13 @@ function Chat({
                 void send(input);
               }
             }}
-            placeholder={locked ? "로그인하면 질문할 수 있어요" : "궁금한 걸 물어보세요"}
+            placeholder={
+              locked
+                ? auth.status === "ready" && auth.mode === "closed"
+                  ? "AI 코치는 지금 열려 있지 않아요"
+                  : "로그인하면 질문할 수 있어요"
+                : "궁금한 걸 물어보세요"
+            }
             disabled={locked}
             className="field max-h-32 min-h-12 flex-1 resize-none [field-sizing:content]"
           />

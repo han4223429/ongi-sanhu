@@ -18,12 +18,19 @@ export type AuthState =
       usage: UsageInfo | null;
     };
 
+/** 서버 없는 정적 데모(GitHub Pages) 빌드. 이 경우 AI 기능은 항상 닫힌 것으로 보여 준다. */
+const STATIC_DEMO = process.env.NEXT_PUBLIC_STATIC_DEMO === "1";
+const STATIC_STATE: AuthState = { status: "ready", mode: "closed", user: null, usage: null };
+
 /** 서버가 알려 주는 로그인 상태와 오늘 남은 횟수. 알 수 없으면 막지 않고 서버 판단에 맡긴다. */
 export function useAuth() {
-  const [state, setState] = useState<AuthState>({ status: "loading" });
+  const [state, setState] = useState<AuthState>(
+    STATIC_DEMO ? STATIC_STATE : { status: "loading" },
+  );
   const [tick, setTick] = useState(0);
 
   useEffect(() => {
+    if (STATIC_DEMO) return;
     const controller = new AbortController();
     (async () => {
       try {

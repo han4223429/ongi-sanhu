@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // 정적 데모 빌드 결과물
+    "static-site/**",
   ]),
 ]);
 

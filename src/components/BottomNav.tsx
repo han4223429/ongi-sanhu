@@ -14,7 +14,9 @@ const TABS = [
 const HIDDEN = ["/", "/onboarding"];
 
 export function BottomNav() {
-  const pathname = usePathname();
+  const raw = usePathname();
+  // 정적 사이트는 주소 끝에 /가 붙을 수 있어 같은 화면으로 본다.
+  const pathname = raw.length > 1 ? raw.replace(/\/$/, "") : raw;
   if (HIDDEN.includes(pathname)) return null;
 
   return (
