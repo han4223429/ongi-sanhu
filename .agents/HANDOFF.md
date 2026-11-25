@@ -37,3 +37,10 @@ AI 코치·루틴 조정은 BAZE 게이트웨이로 실제 호출해 확인했�
 - API 키는 .env.local/권한 600/Git 제외. AI 모듈 server-only. 소스·빌드·Git 이력에서 현재 키 값 일치 0. 재검사: `node scripts/check-secrets.mjs --history`.
 - 이번 보안 변경의 외부 유료 AI 실호출/실기기/배포 검증은 미실행. 기존 lead의 실호출 기록과 구분할 것.
 - 이 세션은 commit/push/배포/자격 증명 변경을 하지 않음. 다른 세션이 만든 저장소 이후의 최종 문서와 키 보호 변경은 git status로 확인.
+
+## 로그인·사용량 제한 (2026-11-25)
+- GitHub OAuth 로그인 + 하루 사용량 제한(코치 20 / 루틴 조정 5 / 전체 500)을 구현해 main에 합쳤다. 테스트 118개, lint·typecheck·build·`npm run check:routes` 통과. 프로덕션 모드 서버로 state 요청마다 변경, 쿠키 Secure/__Host-, 로그인 없는 AI 401을 확인했다.
+- 로그인·콜백 라우트는 `await connection()`이 없으면 빌드 때 굳는다(모든 사용자가 같은 state). 삭제하지 말 것. 빌드 뒤 `npm run check:routes`로 확인한다.
+- **미완료**: 실제 배포. GitHub OAuth 앱(콜백 URL 필요), Vercel, Upstash Redis를 본인 계정으로 만드는 일이 남았다. 순서는 docs/AUTH-AND-DEPLOY.md.
+- 실제 GitHub 로그인은 OAuth 앱이 없어 끝까지 해 보지 못했다. 코드 경로는 GitHub 응답을 가짜로 만든 테스트로 검증했다.
+- 개인정보 처리방침(/privacy)에는 운영자 이름·연락처가 없다. 공개 전에 넣을 것.

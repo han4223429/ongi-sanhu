@@ -1,5 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+// connection()은 Next 요청 안에서만 호출할 수 있다. 테스트에서는 바로 통과시킨다.
+// (실제 동작은 프로덕션 서버로 확인한다: scripts/check-dynamic-routes.mjs, 요청마다 다른 state)
+vi.mock("next/server", async (original) => ({
+  ...(await original<typeof import("next/server")>()),
+  connection: async () => {},
+}));
+
 vi.mock("@/lib/anthropic", async (original) => ({
   ...(await original<typeof import("./anthropic")>()),
   hasApiKey: () => false,

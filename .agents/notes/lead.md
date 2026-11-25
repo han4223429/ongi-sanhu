@@ -43,3 +43,5 @@
   1. 사용자가 .env.local에 ANTHROPIC_API_KEY를 넣으면 dev 서버 재시작 후 코치·루틴 조정 실응답과 서버 로그의 `[chat] usage` cacheRead 확인
   2. 실제 휴대폰에서 화면 확인
   3. 운동 내용 전문가 감수, 배포 방식 결정
+
+- (2026-11-25) 로그인·사용량 제한 구현은 별도 worktree(../ongi-auth, 브랜치 feat/auth-quota)에서 진행해 Codex 작업과 충돌 없이 main에 합쳤다. 상세는 HANDOFF.md.
