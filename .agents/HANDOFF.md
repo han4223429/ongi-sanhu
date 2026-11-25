@@ -44,3 +44,7 @@ AI 코치·루틴 조정은 BAZE 게이트웨이로 실제 호출해 확인했�
 - **미완료**: 실제 배포. GitHub OAuth 앱(콜백 URL 필요), Vercel, Upstash Redis를 본인 계정으로 만드는 일이 남았다. 순서는 docs/AUTH-AND-DEPLOY.md.
 - 실제 GitHub 로그인은 OAuth 앱이 없어 끝까지 해 보지 못했다. 코드 경로는 GitHub 응답을 가짜로 만든 테스트로 검증했다.
 - 개인정보 처리방침(/privacy)에는 운영자 이름·연락처가 없다. 공개 전에 넣을 것.
+
+## 데스크톱 시연 (2026-11-25)
+- 시연은 컴퓨터 화면으로 한다(사용자 확인). 넓은 화면(lg 이상)에서 폰 틀 옆에 DesktopIntro 패널이 보이고, 프로필이 없을 때만 '예시 프로필로 바로 둘러보기'(산후 7주·제왕절개·허리 통증)가 있다. 2xl 이상에서는 폰 틀을 조금 키운다.
+- Codespaces: .devcontainer/devcontainer.json. 개발 모드에서만 TLS 종료 프록시 뒤 https Origin 허용(src/lib/http.ts). 실제 Codespaces에서 열어 보지는 못했다.
