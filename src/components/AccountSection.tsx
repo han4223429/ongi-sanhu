@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { remaining, useAuth } from "@/lib/auth-client";
+import { DemoCodeForm } from "./DemoCodeForm";
 
 const RESULTS: Record<string, string> = {
   failed: "로그인하지 못했어요. 다시 시도해 주세요.",
@@ -61,7 +62,13 @@ export function AccountSection() {
       ) : state.user ? (
         <>
           <p className="mt-2 text-[0.9375rem]">
-            GitHub 계정 <strong>{state.user.login}</strong>으로 로그인했어요.
+            {state.user.login === "demo" ? (
+              "시연 코드로 입장했어요."
+            ) : (
+              <>
+                GitHub 계정 <strong>{state.user.login}</strong>으로 로그인했어요.
+              </>
+            )}
           </p>
           {chatLeft !== null && planLeft !== null && (
             <p className="mt-1 text-[0.9375rem] text-muted">
@@ -75,11 +82,20 @@ export function AccountSection() {
       ) : (
         <>
           <p className="mt-2 text-[0.9375rem] text-muted">
-            로그인하면 AI 코치와 루틴 조정을 쓸 수 있어요. 하루에 코치 20회, 루틴 조정 5회까지예요.
+            {state.methods.demo && !state.methods.github
+              ? "시연 코드를 입력하면 AI 코치와 루틴 조정을 쓸 수 있어요."
+              : "입장하면 AI 코치와 루틴 조정을 쓸 수 있어요."}{" "}
+            하루에 코치 20회, 루틴 조정 5회까지예요.
           </p>
-          <a href="/api/auth/login?next=/me" className="btn btn-primary mt-4 w-full">
-            GitHub로 로그인
-          </a>
+          {state.methods.demo && <DemoCodeForm onDone={refresh} />}
+          {state.methods.github && (
+            <a
+              href="/api/auth/login?next=/me"
+              className={`btn mt-4 w-full ${state.methods.demo ? "btn-outline" : "btn-primary"}`}
+            >
+              GitHub로 로그인
+            </a>
+          )}
         </>
       )}
       {error && (

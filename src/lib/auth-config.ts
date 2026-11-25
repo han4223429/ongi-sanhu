@@ -6,6 +6,23 @@
  * - 설정 없음 + 개발/테스트 → 이전처럼 열려 있음(로컬 확인용)
  * - 설정 없음 + 프로덕션 → AI 기능 닫힘 (키가 있어도 누구나 쓰는 일이 없게)
  */
+/** 로그인 쿠키 서명 키. 로그인 방법(GitHub, 시연 코드)이 같이 쓴다. */
+export function getSessionSecret(): Uint8Array | null {
+  const secret = process.env.AUTH_SECRET?.trim();
+  return secret && secret.length >= 32 ? new TextEncoder().encode(secret) : null;
+}
+
+/** 시연 코드. 8자 이상이고 쿠키 서명 키가 있어야 켜진다. */
+export function getDemoPasscode(): string | null {
+  const code = process.env.DEMO_PASSCODE?.trim();
+  return code && code.length >= 8 && getSessionSecret() ? code : null;
+}
+
+/** 지금 켜져 있는 로그인 방법 */
+export function loginMethods(): { github: boolean; demo: boolean } {
+  return { github: getAuthConfig().enabled, demo: getDemoPasscode() !== null };
+}
+
 export type AuthConfig =
   | {
       enabled: true;

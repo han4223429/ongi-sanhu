@@ -404,7 +404,7 @@ function Adjust({
       <p className="mt-2 text-sm text-muted">컨디션과 회복 정보가 AI 제공자에게 전달돼요. 조정 중에도 취소할 수 있어요.{left !== null ? ` 오늘 ${left}회 더 조정할 수 있어요.` : ""}</p>
       {locked && (
         <div className="mt-5 space-y-3">
-          <LoginCard state={auth} next="/today" what="AI 루틴 조정" />
+          <LoginCard state={auth} next="/today" what="AI 루틴 조정" onLoggedIn={refreshAuth} />
           <button type="button" className="btn btn-outline w-full" onClick={() => setOpen(false)}>
             닫기
           </button>

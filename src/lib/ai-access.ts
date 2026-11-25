@@ -1,4 +1,4 @@
-import { getAuthConfig, isProduction } from "./auth-config";
+import { getSessionSecret, isProduction, loginMethods } from "./auth-config";
 import { json } from "./http";
 import { readCookie, sessionCookieName, verifySession, type SessionUser } from "./session";
 import {
@@ -19,10 +19,12 @@ const deny = (status: number, code: string, message: string, extra = {}) => ({
 
 /** 요청을 보낸 로그인 사용자. 없거나 잘못된 쿠키면 null. */
 export async function currentUser(request: Request): Promise<SessionUser | null> {
-  const config = getAuthConfig();
-  if (!config.enabled) return null;
+  const methods = loginMethods();
+  if (!methods.github && !methods.demo) return null;
+  const secret = getSessionSecret();
+  if (!secret) return null;
   const token = readCookie(request, sessionCookieName());
-  return token ? verifySession(token, config.secret) : null;
+  return token ? verifySession(token, secret) : null;
 }
 
 /**
@@ -30,9 +32,9 @@ export async function currentUser(request: Request): Promise<SessionUser | null>
  * 위험 증상 안내와 기본 루틴은 이 문을 거치지 않는다(항상 열려 있다).
  */
 export async function gateAI(request: Request, kind: UsageKind): Promise<AIGate> {
-  const config = getAuthConfig();
+  const methods = loginMethods();
 
-  if (!config.enabled) {
+  if (!methods.github && !methods.demo) {
     if (isProduction()) {
       return deny(
         503,

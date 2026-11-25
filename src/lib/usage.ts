@@ -7,6 +7,8 @@
  * 저장소는 Upstash Redis(REST)다. 서버가 여러 대여도 같은 숫자를 본다.
  * 저장소에 닿지 못하면 AI를 막는다(열어 두는 쪽으로 실패하지 않는다).
  */
+import { getDemoPasscode } from "./auth-config";
+
 export type UsageKind = "chat" | "plan";
 
 export const DAILY_LIMITS: Record<UsageKind, number> = { chat: 20, plan: 5 };
@@ -118,7 +120,9 @@ export function getUsageStore(): UsageStore | null {
   if (url && token && url.startsWith("https://")) {
     return new UpstashUsageStore(url, token);
   }
-  if (process.env.NODE_ENV === "production") return null;
+  // 프로덕션에서 Redis가 없으면 닫는다. 단, 시연 코드 모드는 서버 메모리(인스턴스별)로 센다.
+  // 이 경우 한도는 인스턴스마다 따로라 엄밀하지 않지만, 코드를 아는 사람만 들어올 수 있다.
+  if (process.env.NODE_ENV === "production" && getDemoPasscode() === null) return null;
   memory ??= new MemoryUsageStore();
   return memory;
 }

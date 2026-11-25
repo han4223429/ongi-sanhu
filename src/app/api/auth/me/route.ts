@@ -1,5 +1,5 @@
 import { currentUser } from "@/lib/ai-access";
-import { getAuthConfig, isProduction } from "@/lib/auth-config";
+import { isProduction, loginMethods } from "@/lib/auth-config";
 import { json } from "@/lib/http";
 import { getUsageStore, readUsage } from "@/lib/usage";
 
@@ -15,14 +15,20 @@ export async function GET(request: Request) {
     return json({ code: "forbidden", message: "앱에서 다시 요청해 주세요." }, { status: 403 });
   }
 
-  if (!getAuthConfig().enabled) {
-    return json({ mode: isProduction() ? "closed" : "open", user: null, usage: null });
+  const methods = loginMethods();
+  if (!methods.github && !methods.demo) {
+    return json({
+      mode: isProduction() ? "closed" : "open",
+      methods,
+      user: null,
+      usage: null,
+    });
   }
 
   const user = await currentUser(request);
-  if (!user) return json({ mode: "login", user: null, usage: null });
+  if (!user) return json({ mode: "login", methods, user: null, usage: null });
 
   const store = getUsageStore();
   const usage = store ? await readUsage(store, user.id).catch(() => null) : null;
-  return json({ mode: "login", user: { login: user.login }, usage });
+  return json({ mode: "login", methods, user: { login: user.login }, usage });
 }

@@ -14,13 +14,20 @@ export type AuthState =
   | {
       status: "ready";
       mode: "login" | "open" | "closed";
+      methods: { github: boolean; demo: boolean };
       user: { login: string } | null;
       usage: UsageInfo | null;
     };
 
 /** 서버 없는 정적 데모(GitHub Pages) 빌드. 이 경우 AI 기능은 항상 닫힌 것으로 보여 준다. */
 const STATIC_DEMO = process.env.NEXT_PUBLIC_STATIC_DEMO === "1";
-const STATIC_STATE: AuthState = { status: "ready", mode: "closed", user: null, usage: null };
+const STATIC_STATE: AuthState = {
+  status: "ready",
+  mode: "closed",
+  methods: { github: false, demo: false },
+  user: null,
+  usage: null,
+};
 
 /** 서버가 알려 주는 로그인 상태와 오늘 남은 횟수. 알 수 없으면 막지 않고 서버 판단에 맡긴다. */
 export function useAuth() {
@@ -44,6 +51,10 @@ export function useAuth() {
         setState({
           status: "ready",
           mode: data.mode,
+          methods: {
+            github: Boolean(data.methods?.github),
+            demo: Boolean(data.methods?.demo),
+          },
           user: data.user ?? null,
           usage: data.usage ?? null,
         });

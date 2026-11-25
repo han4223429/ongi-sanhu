@@ -9,6 +9,7 @@ const mustBeDynamic = [
   "api/auth/callback",
   "api/auth/logout",
   "api/auth/me",
+  "api/auth/demo",
   "api/chat",
   "api/plan",
 ];

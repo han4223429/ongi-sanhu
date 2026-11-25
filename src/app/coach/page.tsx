@@ -210,7 +210,7 @@ function Chat({
 
       <div className="flex-1 px-6 pb-4 pt-4">
         {empty && locked ? (
-          <LoginCard state={auth} next="/coach" what="AI 코치" />
+          <LoginCard state={auth} next="/coach" what="AI 코치" onLoggedIn={refreshAuth} />
         ) : empty ? (
           <section>
             <p className="text-muted">
@@ -251,7 +251,7 @@ function Chat({
         )}
         {!empty && locked && (
           <div className="mt-4">
-            <LoginCard state={auth} next="/coach" what="AI 코치" />
+            <LoginCard state={auth} next="/coach" what="AI 코치" onLoggedIn={refreshAuth} />
           </div>
         )}
         <div ref={endRef} />
