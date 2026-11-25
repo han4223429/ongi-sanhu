@@ -14,7 +14,7 @@ export type AuthState =
   | {
       status: "ready";
       mode: "login" | "open" | "closed";
-      methods: { github: boolean; demo: boolean };
+      methods: { github: boolean; demo: boolean; open: boolean };
       user: { login: string } | null;
       usage: UsageInfo | null;
     };
@@ -24,7 +24,7 @@ const STATIC_DEMO = process.env.NEXT_PUBLIC_STATIC_DEMO === "1";
 const STATIC_STATE: AuthState = {
   status: "ready",
   mode: "closed",
-  methods: { github: false, demo: false },
+  methods: { github: false, demo: false, open: false },
   user: null,
   usage: null,
 };
@@ -39,21 +39,35 @@ export function useAuth() {
   useEffect(() => {
     if (STATIC_DEMO) return;
     const controller = new AbortController();
+    const status = async () => {
+      const response = await fetch("/api/auth/me", {
+        headers: { "x-ongi-client": "web" },
+        cache: "no-store",
+        signal: controller.signal,
+      });
+      if (!response.ok) throw new Error("auth status failed");
+      return response.json();
+    };
     (async () => {
       try {
-        const response = await fetch("/api/auth/me", {
-          headers: { "x-ongi-client": "web" },
-          cache: "no-store",
-          signal: controller.signal,
-        });
-        if (!response.ok) throw new Error("auth status failed");
-        const data = await response.json();
+        let data = await status();
+        // 코드 없는 시연 모드: 입력 없이 자동으로 입장한다. (실패해도 다시 시도하지 않는다)
+        if (data.mode === "login" && data.methods?.open && !data.user) {
+          const entered = await fetch("/api/auth/demo", {
+            method: "POST",
+            headers: { "content-type": "application/json", "x-ongi-client": "web" },
+            body: "{}",
+            signal: controller.signal,
+          });
+          if (entered.ok) data = await status();
+        }
         setState({
           status: "ready",
           mode: data.mode,
           methods: {
             github: Boolean(data.methods?.github),
             demo: Boolean(data.methods?.demo),
+            open: Boolean(data.methods?.open),
           },
           user: data.user ?? null,
           usage: data.usage ?? null,

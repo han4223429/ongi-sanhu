@@ -29,12 +29,14 @@ export function LoginCard({
   }
 
   const methods =
-    state.status === "ready" ? state.methods : { github: true, demo: false };
+    state.status === "ready"
+      ? state.methods
+      : { github: true, demo: false, open: false };
 
   return (
     <section className="rounded-[var(--radius-control)] border border-line bg-surface p-4">
       <h2 className="font-semibold">
-        {methods.demo && !methods.github
+        {methods.demo && !methods.open && !methods.github
           ? `시연 코드를 입력하면 ${what}을 쓸 수 있어요`
           : `로그인하면 ${what}을 쓸 수 있어요`}
       </h2>
@@ -49,7 +51,7 @@ export function LoginCard({
         </a>
         에 있어요.
       </p>
-      {methods.demo && <DemoCodeForm onDone={onLoggedIn} />}
+      {methods.demo && !methods.open && <DemoCodeForm onDone={onLoggedIn} />}
       {methods.github && (
         <a
           href={`/api/auth/login?next=${encodeURIComponent(next)}`}

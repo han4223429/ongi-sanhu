@@ -87,7 +87,7 @@ export function AccountSection() {
               : "입장하면 AI 코치와 루틴 조정을 쓸 수 있어요."}{" "}
             하루에 코치 20회, 루틴 조정 5회까지예요.
           </p>
-          {state.methods.demo && <DemoCodeForm onDone={refresh} />}
+          {state.methods.demo && !state.methods.open && <DemoCodeForm onDone={refresh} />}
           {state.methods.github && (
             <a
               href="/api/auth/login?next=/me"

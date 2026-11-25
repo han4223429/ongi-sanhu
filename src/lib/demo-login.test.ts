@@ -149,6 +149,82 @@ describe("시연 코드 모드의 AI 접근 (프로덕션, Redis 없음)", () =>
     const body = await (
       await GET(new Request(`${BASE}/api/auth/me`, { headers: { "x-ongi-client": "web" } }))
     ).json();
-    expect(body).toEqual({ mode: "login", methods: { github: false, demo: true }, user: null, usage: null });
+    expect(body).toEqual({ mode: "login", methods: { github: false, demo: true, open: false }, user: null, usage: null });
+  });
+});
+
+describe("코드 없는 시연 모드 (DEMO_OPEN=1)", () => {
+  function enableOpen() {
+    vi.stubEnv("AUTH_SECRET", SECRET_TEXT);
+    vi.stubEnv("DEMO_OPEN", "1");
+  }
+
+  it("코드 없이 입장하고 사람마다 다른 번호를 받는다", async () => {
+    enableOpen();
+    const POST = await route();
+    const a = await POST(post({}));
+    const b = await POST(post({}));
+    expect(a.status).toBe(200);
+    const ua = await verifySession(tokenOf(a), getSessionSecret()!);
+    const ub = await verifySession(tokenOf(b), getSessionSecret()!);
+    expect(ua?.login).toBe("demo");
+    expect(ua!.id).not.toBe(ub!.id);
+  });
+
+  it("스위치가 꺼져 있으면(DEMO_OPEN 없음) 코드 없이는 입장할 수 없다", async () => {
+    vi.stubEnv("AUTH_SECRET", SECRET_TEXT);
+    const POST = await route();
+    expect((await POST(post({}))).status).toBe(404);
+    vi.stubEnv("DEMO_OPEN", "true"); // 정확히 "1"일 때만 켜진다
+    expect((await (await route())(post({}))).status).toBe(404);
+  });
+
+  it("쿠키 서명 키가 없으면 켤 수 없다", async () => {
+    vi.stubEnv("DEMO_OPEN", "1");
+    expect((await (await route())(post({}))).status).toBe(404);
+  });
+
+  it("한 서버에서 짧은 시간에 입장이 너무 많으면 막는다", async () => {
+    enableOpen();
+    const POST = await route();
+    for (let i = 0; i < 120; i++) expect((await POST(post({}))).status).toBe(200);
+    const limited = await POST(post({}));
+    expect(limited.status).toBe(429);
+  });
+
+  it("다른 사이트에서 부르는 입장 요청은 막는다", async () => {
+    enableOpen();
+    const POST = await route();
+    expect((await POST(post({}, { origin: "https://evil.example" }))).status).toBe(403);
+  });
+
+  it("프로덕션에서 입장한 사람은 AI를 쓸 수 있고 한도는 그대로 적용된다", async () => {
+    enableOpen();
+    vi.stubEnv("NODE_ENV", "production");
+    const POST = await route();
+    const token = tokenOf(await POST(post({})));
+    const { gateAI: gate } = await import("./ai-access");
+    const request = new Request(`${BASE}/api/plan`, {
+      method: "POST",
+      headers: { cookie: `${sessionCookieName()}=${token}` },
+    });
+    for (let i = 0; i < 5; i++) expect((await gate(request, "plan")).ok).toBe(true);
+    const over = await gate(request, "plan");
+    expect(over.ok).toBe(false);
+    if (!over.ok) expect((await over.response.json()).code).toBe("quota_exceeded");
+    // 입장하지 않은 요청은 여전히 거절된다
+    const anon = await gate(new Request(`${BASE}/api/plan`), "plan");
+    expect(anon.ok).toBe(false);
+  });
+
+  it("상태 API가 코드 없는 모드임을 알려 준다", async () => {
+    enableOpen();
+    vi.stubEnv("NODE_ENV", "production");
+    vi.resetModules();
+    const { GET } = await import("@/app/api/auth/me/route");
+    const body = await (
+      await GET(new Request(`${BASE}/api/auth/me`, { headers: { "x-ongi-client": "web" } }))
+    ).json();
+    expect(body.methods).toEqual({ github: false, demo: true, open: true });
   });
 });

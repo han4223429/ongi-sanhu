@@ -18,9 +18,26 @@ export function getDemoPasscode(): string | null {
   return code && code.length >= 8 && getSessionSecret() ? code : null;
 }
 
+/**
+ * 코드 없이 입장하는 시연 모드. DEMO_OPEN=1일 때만 켜진다.
+ * 주소를 아는 누구나 AI를 쓸 수 있으므로 시연 때만 켜고, 끝나면 DEMO_OPEN을 지운다.
+ */
+export function isDemoOpen(): boolean {
+  return process.env.DEMO_OPEN?.trim() === "1" && getSessionSecret() !== null;
+}
+
+/** 시연 입장이 켜져 있는지 (코드 방식 또는 코드 없는 방식) */
+export function demoEnabled(): boolean {
+  return getDemoPasscode() !== null || isDemoOpen();
+}
+
 /** 지금 켜져 있는 로그인 방법 */
-export function loginMethods(): { github: boolean; demo: boolean } {
-  return { github: getAuthConfig().enabled, demo: getDemoPasscode() !== null };
+export function loginMethods(): { github: boolean; demo: boolean; open: boolean } {
+  return {
+    github: getAuthConfig().enabled,
+    demo: demoEnabled(),
+    open: isDemoOpen(),
+  };
 }
 
 export type AuthConfig =

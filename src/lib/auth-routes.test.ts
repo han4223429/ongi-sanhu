@@ -199,7 +199,7 @@ describe("GET /api/auth/me, POST /api/auth/logout", () => {
   it("로그인 전에는 login 모드, 후에는 이름과 남은 횟수를 준다", async () => {
     expect(await (await me(meRequest())).json()).toEqual({
       mode: "login",
-      methods: { github: true, demo: false },
+      methods: { github: true, demo: false, open: false },
       user: null,
       usage: null,
     });
