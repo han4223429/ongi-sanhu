@@ -48,3 +48,9 @@ AI 코치·루틴 조정은 BAZE 게이트웨이로 실제 호출해 확인했�
 ## 데스크톱 시연 (2026-11-25)
 - 시연은 컴퓨터 화면으로 한다(사용자 확인). 넓은 화면(lg 이상)에서 폰 틀 옆에 DesktopIntro 패널이 보이고, 프로필이 없을 때만 '예시 프로필로 바로 둘러보기'(산후 7주·제왕절개·허리 통증)가 있다. 2xl 이상에서는 폰 틀을 조금 키운다.
 - Codespaces: .devcontainer/devcontainer.json. 개발 모드에서만 TLS 종료 프록시 뒤 https Origin 허용(src/lib/http.ts). 실제 Codespaces에서 열어 보지는 못했다.
+
+## 정적 데모 주소 (2026-11-25)
+- https://han4223429.github.io/ongi-sanhu/ (GitHub Pages, gh-pages 브랜치, 커밋 1ae5d29, main 06a808e에서 빌드). 서버가 없어 AI는 항상 닫힘으로 보인다. 모든 페이지·아이콘·404 응답 확인, 브라우저에서 첫 화면→예시 프로필→오늘→운동 상세 동작과 콘솔 오류 0 확인.
+- 갱신: `npm run build:static -- /ongi-sanhu` → static-site/ 내용을 gh-pages에 커밋·푸시. main에 푸시해도 Pages는 자동 갱신되지 않는다(소스가 gh-pages).
+- build-static.mjs는 임시 폴더에서 src/app/api와 테스트를 빼고 빌드한다. manifest.ts의 force-static은 임시 복사본에만 넣는다(원본은 cacheComponents와 충돌).
+- 진짜 서버 배포(AI·로그인)는 여전히 docs/AUTH-AND-DEPLOY.md의 Vercel 순서가 필요하다.

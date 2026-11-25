@@ -3,6 +3,13 @@
 출산한 산모가 자기 몸의 회복 속도에 맞춰 운동할 수 있게 돕는 모바일 웹앱(PWA)입니다.
 분만 방식, 산후 주차, 증상을 바탕으로 오늘 해도 되는 운동만 골라 보여주고, 궁금한 것은 AI 코치에게 바로 물어볼 수 있습니다.
 
+## 화면 바로 보기 (설치 필요 없음)
+
+**https://han4223429.github.io/ongi-sanhu/** — 브라우저로 열기만 하면 됩니다. 컴퓨터에서 열면 폰 모양 틀 안에 앱이 보이고, **'예시 프로필로 바로 둘러보기'** 를 누르면 설문 없이 오늘 루틴·운동 설명·내 정보 화면을 볼 수 있습니다.
+
+- 서버가 없는 정적 사이트(GitHub Pages)라서 **AI 코치와 루틴 조정은 꺼진 상태**로 보입니다. 기록은 열어 본 브라우저에만 저장됩니다.
+- 이 주소는 `gh-pages` 브랜치로 배포됩니다. 코드를 고친 뒤 갱신하려면 `npm run build:static -- /ongi-sanhu`로 `static-site/`를 만들고 그 내용을 `gh-pages` 브랜치에 올립니다.
+
 ## 바로 실행해 보기
 
 [![GitHub Codespaces에서 열기](https://github.com/codespaces/badge.svg)](https://codespaces.new/han4223429/ongi-sanhu?quickstart=1)
