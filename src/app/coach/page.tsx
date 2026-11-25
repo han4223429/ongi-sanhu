@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { SendIcon, StopIcon } from "@/components/icons";
+import { LoginCard } from "@/components/LoginCard";
+import { isLocked, remaining, useAuth } from "@/lib/auth-client";
 import type { Profile } from "@/lib/profile";
 import { chatHistory } from "@/lib/chat-history";
 import { detectRedFlags, redFlagNotice } from "@/lib/redflags";
@@ -30,6 +32,10 @@ const ERRORS: Record<string, string> = {
   rate_limited: "요청이 많아요. 최대 5분 뒤에 다시 보내 주세요.",
   too_large: "대화가 너무 길어졌어요. 대화를 지우고 다시 시작해 주세요.",
   ai_unavailable: "지금은 답을 가져오지 못했어요. 잠시 뒤 다시 보내 주세요.",
+  login_required: "로그인이 풀렸어요. 아래에서 다시 로그인해 주세요.",
+  quota_exceeded: "오늘 쓸 수 있는 코치 횟수를 모두 썼어요. 내일 다시 쓸 수 있어요.",
+  capacity_reached: "오늘은 AI 이용이 많아 잠시 닫았어요. 내일 다시 열려요.",
+  ai_disabled: "AI 코치가 지금은 열려 있지 않아요. 오늘의 루틴과 운동 설명을 이용해 주세요.",
 };
 
 export default function CoachPage() {
@@ -68,6 +74,9 @@ function Chat({
   const [draft, setDraft] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [confirmClear, setConfirmClear] = useState(false);
+  const { state: auth, refresh: refreshAuth } = useAuth();
+  const locked = isLocked(auth);
+  const left = remaining(auth, "chat");
   const abortRef = useRef<AbortController | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -86,6 +95,18 @@ function Chat({
   const send = async (text: string) => {
     const content = text.trim();
     if (!content || streaming || abortRef.current) return;
+    // 위험 증상 안내는 로그인 없이도 나온다. 그 밖의 질문은 로그인이 필요하다.
+    if (
+      locked &&
+      redFlagNotice([...new Set([...profile.redFlags, ...detectRedFlags(content)])]) === ""
+    ) {
+      setError(
+        auth.status === "ready" && auth.mode === "closed"
+          ? ERRORS.ai_disabled
+          : ERRORS.login_required,
+      );
+      return;
+    }
 
     const history: ChatMessage[] = [...messages, { role: "user", content }];
     if (!saveChat(history)) {
@@ -123,6 +144,7 @@ function Chat({
           ERRORS[data?.code] ??
             "보내지 못했어요. 연결을 확인하고 다시 시도해 주세요.",
         );
+        if (data?.code === "login_required" || data?.code === "quota_exceeded") refreshAuth();
         return;
       }
 
@@ -147,6 +169,7 @@ function Chat({
           saveChat([...history, { role: "assistant", content: answer.trim() }], snapshot);
         }
         setDraft(null);
+        refreshAuth();
       }
     }
   };
@@ -186,7 +209,9 @@ function Chat({
       )}
 
       <div className="flex-1 px-6 pb-4 pt-4">
-        {empty ? (
+        {empty && locked ? (
+          <LoginCard state={auth} next="/coach" what="AI 코치" />
+        ) : empty ? (
           <section>
             <p className="text-muted">
               오늘 루틴, 동작하는 법, 몸의 변화까지 편하게 물어보세요. 내 산후
@@ -224,6 +249,11 @@ function Chat({
             {error}
           </p>
         )}
+        {!empty && locked && (
+          <div className="mt-4">
+            <LoginCard state={auth} next="/coach" what="AI 코치" />
+          </div>
+        )}
         <div ref={endRef} />
       </div>
 
@@ -256,7 +286,8 @@ function Chat({
                 void send(input);
               }
             }}
-            placeholder="궁금한 걸 물어보세요"
+            placeholder={locked ? "로그인하면 질문할 수 있어요" : "궁금한 걸 물어보세요"}
+            disabled={locked}
             className="field max-h-32 min-h-12 flex-1 resize-none [field-sizing:content]"
           />
           {streaming ? (
@@ -271,7 +302,7 @@ function Chat({
           ) : (
             <button
               type="submit"
-              disabled={!input.trim()}
+              disabled={!input.trim() || locked}
               aria-label="보내기"
               className="btn btn-primary size-12 min-h-12 flex-none px-0"
             >
@@ -280,6 +311,7 @@ function Chat({
           )}
         </div>
         <p className="mt-2 text-center text-xs text-muted">
+          {left !== null ? `오늘 ${left}회 더 물어볼 수 있어요. ` : ""}
           일반 건강 정보예요. 진단이나 치료를 대신하지 않아요.
         </p>
       </form>

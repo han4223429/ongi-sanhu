@@ -1,4 +1,5 @@
 import { acquireAI, aiSignal } from "@/lib/ai-budget";
+import { gateAI } from "@/lib/ai-access";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
 import { guardRequest, readJson, requestFailure, json } from "@/lib/http";
@@ -17,7 +18,7 @@ import {
   buildRoutine,
   sanitizePlan,
 } from "@/lib/program";
-import { allow, clientKey } from "@/lib/ratelimit";
+import { allow } from "@/lib/ratelimit";
 import { detectRedFlags } from "@/lib/redflags";
 
 export const maxDuration = 120;
@@ -88,7 +89,12 @@ export async function POST(request: Request) {
   const allowedIds = new Set(allowed.map((exercise) => exercise.id));
   const rules = buildRoutine(profile, today).filter((item) => allowedIds.has(item.id));
 
-  if (!allow(`plan:${clientKey()}`, 10)) {
+  // 로그인 확인과 하루 사용량 차감. 위험 증상 안내와 기본 루틴은 이 문을 거치지 않는다.
+  const gate = await gateAI(request, "plan");
+  if (!gate.ok) return gate.response;
+
+  if (!allow(`plan:${gate.key}`, 10)) {
+    await gate.refund();
     return failure({
       status: 429,
       code: "rate_limited",
@@ -97,6 +103,7 @@ export async function POST(request: Request) {
   }
 
   if (!hasApiKey()) {
+    await gate.refund();
     return failure({
       status: 503,
       code: "no_api_key",
@@ -104,16 +111,22 @@ export async function POST(request: Request) {
     });
   }
 
-  const rulesFallback = () =>
-    json({
+  // AI 결과를 못 받은 경우에는 한 번 쓴 것으로 치지 않는다.
+  const rulesFallback = async () => {
+    await gate.refund();
+    return json({
       source: "rules",
       items: rules,
       note: "",
       code: "ai_unavailable",
     });
+  };
 
   const release = acquireAI();
-  if (!release) return failure({ status: 429, code: "rate_limited", message: "AI가 다른 요청을 처리하고 있어요. 잠시 뒤 시도해 주세요." });
+  if (!release) {
+    await gate.refund();
+    return failure({ status: 429, code: "rate_limited", message: "AI가 다른 요청을 처리하고 있어요. 잠시 뒤 시도해 주세요." });
+  }
   const model = getModel();
   try {
     const response = await getClient().beta.messages.parse({
@@ -147,7 +160,7 @@ export async function POST(request: Request) {
     }, { signal: aiSignal(request) });
 
     if (response.stop_reason === "refusal" || !response.parsed_output) {
-      return rulesFallback();
+      return await rulesFallback();
     }
 
     const items = sanitizePlan(
@@ -155,7 +168,7 @@ export async function POST(request: Request) {
       allowedIds,
       profile.minutes,
     );
-    if (items.length === 0) return rulesFallback();
+    if (items.length === 0) return await rulesFallback();
 
     return json({
       source: "ai",
@@ -167,9 +180,10 @@ export async function POST(request: Request) {
     console.error("[plan] upstream error", failed.code);
     // 키 문제와 한도 초과는 사용자가 알아야 하므로 그대로 알린다.
     if (failed.code === "no_api_key" || failed.code === "rate_limited") {
+      await gate.refund();
       return failure(failed);
     }
-    return rulesFallback();
+    return await rulesFallback();
   } finally {
     release();
   }
