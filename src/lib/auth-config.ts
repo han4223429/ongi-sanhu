@@ -19,11 +19,14 @@ export function getDemoPasscode(): string | null {
 }
 
 /**
- * 코드 없이 입장하는 시연 모드. DEMO_OPEN=1일 때만 켜진다.
- * 주소를 아는 누구나 AI를 쓸 수 있으므로 시연 때만 켜고, 끝나면 DEMO_OPEN을 지운다.
+ * 코드 없이 입장하는 시연 모드. DEMO_OPEN=1 과 만료 시각 DEMO_OPEN_UNTIL(ISO 형식, 예: 2026-12-03T00:00:00+09:00)이
+ * 모두 있고 아직 지나지 않았을 때만 켜진다. 만료 시각이 없거나 잘못되면 켜지지 않는다.
+ * 주소를 아는 누구나 AI를 쓸 수 있는 모드라서, 끄는 것을 잊어도 정해진 날 저절로 꺼지게 한다.
  */
-export function isDemoOpen(): boolean {
-  return process.env.DEMO_OPEN?.trim() === "1" && getSessionSecret() !== null;
+export function isDemoOpen(now = Date.now()): boolean {
+  if (process.env.DEMO_OPEN?.trim() !== "1" || getSessionSecret() === null) return false;
+  const until = Date.parse(process.env.DEMO_OPEN_UNTIL?.trim() ?? "");
+  return Number.isFinite(until) && now < until;
 }
 
 /** 시연 입장이 켜져 있는지 (코드 방식 또는 코드 없는 방식) */

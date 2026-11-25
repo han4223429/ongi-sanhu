@@ -154,9 +154,10 @@ describe("시연 코드 모드의 AI 접근 (프로덕션, Redis 없음)", () =>
 });
 
 describe("코드 없는 시연 모드 (DEMO_OPEN=1)", () => {
-  function enableOpen() {
+  function enableOpen(until = "2099-01-01T00:00:00Z") {
     vi.stubEnv("AUTH_SECRET", SECRET_TEXT);
     vi.stubEnv("DEMO_OPEN", "1");
+    vi.stubEnv("DEMO_OPEN_UNTIL", until);
   }
 
   it("코드 없이 입장하고 사람마다 다른 번호를 받는다", async () => {
@@ -176,11 +177,43 @@ describe("코드 없는 시연 모드 (DEMO_OPEN=1)", () => {
     const POST = await route();
     expect((await POST(post({}))).status).toBe(404);
     vi.stubEnv("DEMO_OPEN", "true"); // 정확히 "1"일 때만 켜진다
+    vi.stubEnv("DEMO_OPEN_UNTIL", "2099-01-01T00:00:00Z");
     expect((await (await route())(post({}))).status).toBe(404);
+  });
+
+  it("만료 시각이 지나면 저절로 꺼진다", async () => {
+    enableOpen("2000-01-01T00:00:00Z");
+    expect((await (await route())(post({}))).status).toBe(404);
+    vi.unstubAllEnvs();
+    enableOpen(new Date(Date.now() + 60_000).toISOString());
+    expect((await (await route())(post({}))).status).toBe(200);
+  });
+
+  it("만료 시각이 없거나 형식이 잘못되면 켜지지 않는다", async () => {
+    vi.stubEnv("AUTH_SECRET", SECRET_TEXT);
+    vi.stubEnv("DEMO_OPEN", "1");
+    expect((await (await route())(post({}))).status).toBe(404); // 만료 시각 없음
+    vi.stubEnv("DEMO_OPEN_UNTIL", "tomorrow");
+    expect((await (await route())(post({}))).status).toBe(404); // 잘못된 형식
+    vi.stubEnv("DEMO_OPEN_UNTIL", "");
+    expect((await (await route())(post({}))).status).toBe(404);
+  });
+
+  it("만료되면 상태 API도 코드 없는 입장을 알리지 않는다", async () => {
+    enableOpen("2000-01-01T00:00:00Z");
+    vi.stubEnv("NODE_ENV", "production");
+    vi.resetModules();
+    const { GET } = await import("@/app/api/auth/me/route");
+    const body = await (
+      await GET(new Request(`${BASE}/api/auth/me`, { headers: { "x-ongi-client": "web" } }))
+    ).json();
+    expect(body.methods.open).toBe(false);
+    expect(body.mode).toBe("closed");
   });
 
   it("쿠키 서명 키가 없으면 켤 수 없다", async () => {
     vi.stubEnv("DEMO_OPEN", "1");
+    vi.stubEnv("DEMO_OPEN_UNTIL", "2099-01-01T00:00:00Z");
     expect((await (await route())(post({}))).status).toBe(404);
   });
 
