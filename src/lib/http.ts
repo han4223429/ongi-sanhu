@@ -23,7 +23,11 @@ export function guardRequest(request: Request): Response | null {
   if (origin) {
     try {
       const parsed = new URL(origin);
-      validOrigin = parsed.origin === origin && parsed.host === host && parsed.protocol === target.protocol;
+      // 개발 환경(Codespaces 등)에서는 TLS를 끝내는 프록시가 https를 http로 바꿔 전달하므로 프로토콜 차이를 허용한다.
+      // 프로덕션은 요청 주소와 Origin의 프로토콜이 같아야 하고, 호스트는 항상 같아야 한다.
+      const sameProtocol = parsed.protocol === target.protocol
+        || (process.env.NODE_ENV === "development" && parsed.protocol === "https:" && target.protocol === "http:");
+      validOrigin = parsed.origin === origin && parsed.host === host && sameProtocol;
     } catch {
       validOrigin = false;
     }

@@ -1,0 +1,32 @@
+{
+  "name": "온기산후",
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": { "version": "24" }
+  },
+  "postCreateCommand": "npm ci",
+  "postAttachCommand": "DEV_ALLOWED_ORIGINS=\"${CODESPACE_NAME}-3000.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}\" npm run dev",
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "온기산후 (비공개 유지)",
+      "onAutoForward": "openPreview"
+    }
+  },
+  "secrets": {
+    "ANTHROPIC_API_KEY": {
+      "description": "AI 코치용 API 키(선택). 비워 두면 기본 루틴과 안내만 동작해요."
+    },
+    "ANTHROPIC_BASE_URL": {
+      "description": "선택. Anthropic 호환 게이트웨이를 쓸 때만."
+    },
+    "ANTHROPIC_MODEL": {
+      "description": "선택. 비워 두면 claude-opus-5-5"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["bradlc.vscode-tailwindcss", "dbaeumer.vscode-eslint"]
+    }
+  }
+}

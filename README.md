@@ -3,6 +3,17 @@
 출산한 산모가 자기 몸의 회복 속도에 맞춰 운동할 수 있게 돕는 모바일 웹앱(PWA)입니다.
 분만 방식, 산후 주차, 증상을 바탕으로 오늘 해도 되는 운동만 골라 보여주고, 궁금한 것은 AI 코치에게 바로 물어볼 수 있습니다.
 
+## 바로 실행해 보기
+
+[![GitHub Codespaces에서 열기](https://github.com/codespaces/badge.svg)](https://codespaces.new/han4223429/ongi-sanhu?quickstart=1)
+
+위 버튼(또는 https://codespaces.new/han4223429/ongi-sanhu?quickstart=1 )을 누르고 GitHub으로 로그인하면, 설치와 실행이 자동으로 끝나고 앱이 브라우저에 열립니다. 처음에는 1~3분쯤 걸립니다.
+
+- 사용자마다 자기 Codespace가 따로 만들어지고, 사용 시간은 그 사람의 GitHub 무료 사용량에서 차감됩니다. 쓰지 않으면 자동으로 멈춥니다.
+- 기본 루틴, 운동 설명, 위험 증상 안내는 바로 됩니다. **AI 코치는 키를 넣어야 동작합니다.** GitHub 설정의 Codespaces secrets에 `ANTHROPIC_API_KEY`(필요하면 `ANTHROPIC_BASE_URL`, `ANTHROPIC_MODEL`)를 등록한 뒤 Codespace를 새로 만드세요. 키는 코드나 저장소에 넣지 않습니다.
+- 열린 포트(3000)의 공개 설정은 **Private(기본값)으로 두세요.** Public으로 바꾸면 주소를 아는 누구나 내 키로 AI를 쓸 수 있습니다. (개발 모드에서는 로그인 없이 AI가 열려 있습니다.)
+- 이것은 개발 환경입니다. 모두가 접속하는 공개 서비스 주소는 [docs/AUTH-AND-DEPLOY.md](docs/AUTH-AND-DEPLOY.md)의 배포 순서가 필요합니다.
+
 이 문서는 처음 보는 사람이 무엇을 만들었고, 어떻게 실행하며, 지금 어디까지 됐는지 알 수 있도록 쓴 것입니다.
 디자인을 왜 이렇게 정했는지는 [docs/DESIGN.md](docs/DESIGN.md)에 있습니다.
 보안 3회 점검·수정·검증은 [docs/SECURITY-REVIEW.md](docs/SECURITY-REVIEW.md), 화면별 확인 결과와 캡처 9장은 [docs/UX-REVIEW.md](docs/UX-REVIEW.md)에 남겼습니다.

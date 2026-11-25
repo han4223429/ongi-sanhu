@@ -57,3 +57,32 @@ describe("alternate browser request encodings", () => {
     expect(guardRequest(new Request("http://localhost:3000", { headers: { "x-ongi-client": "web", "content-type": type } }))?.status).toBe(415);
   });
 });
+
+describe("guardRequest: 프록시 뒤 https Origin", () => {
+  const proxied = (origin: string) =>
+    new Request("http://demo-3000.app.github.dev/api/plan", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-ongi-client": "web",
+        host: "demo-3000.app.github.dev",
+        origin,
+      },
+      body: "{}",
+    });
+
+  it("개발 모드에서는 https Origin을 허용하지만 호스트가 다르면 막는다", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    const { guardRequest } = await import("./http");
+    expect(guardRequest(proxied("https://demo-3000.app.github.dev"))).toBeNull();
+    expect(guardRequest(proxied("https://evil.example"))?.status).toBe(403);
+    vi.unstubAllEnvs();
+  });
+
+  it("프로덕션에서는 프로토콜이 다르면 막는다", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const { guardRequest } = await import("./http");
+    expect(guardRequest(proxied("https://demo-3000.app.github.dev"))?.status).toBe(403);
+    vi.unstubAllEnvs();
+  });
+});
