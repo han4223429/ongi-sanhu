@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { HundredDays } from "@/components/HundredDays";
 import { CheckIcon, ChevronRightIcon } from "@/components/icons";
+import { LoginCard } from "@/components/LoginCard";
 import { RedFlagNotice } from "@/components/Notices";
+import { isLocked, remaining, useAuth } from "@/lib/auth-client";
 import { CATEGORY_LABEL, getExercise } from "@/lib/exercises";
 import { addDays, daysSince, type Profile } from "@/lib/profile";
 import {
@@ -288,6 +290,10 @@ const PLAN_ERRORS: Record<string, string> = {
   rate_limited: "요청이 많아요. 최대 5분 뒤에 다시 시도해 주세요.",
   ai_unavailable:
     "지금은 AI 조정을 쓸 수 없어 기본 루틴을 유지했어요. 잠시 뒤 다시 시도해 주세요.",
+  login_required: "로그인이 풀렸어요. 아래에서 다시 로그인해 주세요.",
+  quota_exceeded: "오늘 쓸 수 있는 루틴 조정 횟수를 모두 썼어요. 기본 루틴은 그대로 쓸 수 있고, 내일 다시 조정할 수 있어요.",
+  capacity_reached: "오늘은 AI 이용이 많아 잠시 닫았어요. 기본 루틴은 그대로 쓸 수 있어요.",
+  ai_disabled: "AI 조정이 지금은 열려 있지 않아요. 기본 루틴은 그대로 쓸 수 있어요.",
 };
 
 function Adjust({
@@ -307,6 +313,9 @@ function Adjust({
   const [error, setError] = useState("");
   const [flags, setFlags] = useState<RedFlagId[]>([]);
   const abortRef = useRef<AbortController | null>(null);
+  const { state: auth, refresh: refreshAuth } = useAuth();
+  const locked = isLocked(auth);
+  const left = remaining(auth, "plan");
   useEffect(() => () => { abortRef.current?.abort(); abortRef.current = null; }, []);
 
   const submit = async () => {
@@ -352,6 +361,7 @@ function Adjust({
       }
       setOpen(false);
       setNote("");
+      refreshAuth();
     } catch {
       if (!controller.signal.aborted) setError("연결이 끊겼거나 시간이 초과됐어요. 다시 시도해 주세요.");
     } finally {
@@ -391,8 +401,17 @@ function Adjust({
         오늘 몸은 어때요?
       </h2>
 
-      <p className="mt-2 text-sm text-muted">컨디션과 회복 정보가 AI 제공자에게 전달돼요. 조정 중에도 취소할 수 있어요.</p>
+      <p className="mt-2 text-sm text-muted">컨디션과 회복 정보가 AI 제공자에게 전달돼요. 조정 중에도 취소할 수 있어요.{left !== null ? ` 오늘 ${left}회 더 조정할 수 있어요.` : ""}</p>
+      {locked && (
+        <div className="mt-5 space-y-3">
+          <LoginCard state={auth} next="/today" what="AI 루틴 조정" />
+          <button type="button" className="btn btn-outline w-full" onClick={() => setOpen(false)}>
+            닫기
+          </button>
+        </div>
+      )}
       <form
+        hidden={locked}
         aria-busy={loading}
         className="mt-5 space-y-6"
         onSubmit={(event) => {

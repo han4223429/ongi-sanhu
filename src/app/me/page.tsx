@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { AccountSection } from "@/components/AccountSection";
 import { Disclaimer } from "@/components/Notices";
 import { DELIVERY_LABEL, SYMPTOMS, daysSince } from "@/lib/profile";
 import { PHASES, getPhase } from "@/lib/program";
@@ -64,14 +65,23 @@ export default function MePage() {
         </Link>
       </section>
 
+      <AccountSection />
+
       <section>
         <h2 className="display text-xl">내 기록은 이 기기에만 있어요</h2>
         <p className="mt-2 text-[0.9375rem] text-muted">
           출산 정보와 운동 기록은 이 휴대폰의 브라우저에만 저장돼요. 코치에게
           질문하거나 루틴을 조정할 때만 분만 방식, 산후 주차, 증상이 AI에
-          전달되고, 이름이나 연락처는 묻지 않아요.
+          전달돼요. 로그인하면 GitHub 로그인 이름과 하루 사용 횟수만 서버가
+          기억하고, 이메일은 받지 않아요.
         </p>
         <Disclaimer className="mt-4" />
+        <Link
+          href="/privacy"
+          className="mt-3 inline-flex min-h-11 items-center text-[0.9375rem] font-medium text-primary underline underline-offset-4"
+        >
+          개인정보 처리방침 보기
+        </Link>
       </section>
 
       <section>

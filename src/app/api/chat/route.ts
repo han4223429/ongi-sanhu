@@ -1,4 +1,5 @@
 import { acquireAI, aiSignal } from "@/lib/ai-budget";
+import { gateAI } from "@/lib/ai-access";
 import { z } from "zod";
 import { guardRequest, readJson, requestFailure, json } from "@/lib/http";
 import {
@@ -11,7 +12,7 @@ import {
   mapError,
 } from "@/lib/anthropic";
 import { DateKeySchema, ProfileSchema } from "@/lib/profile";
-import { allow, clientKey } from "@/lib/ratelimit";
+import { allow } from "@/lib/ratelimit";
 import { detectRedFlags, redFlagNotice } from "@/lib/redflags";
 
 export const maxDuration = 120;
@@ -76,7 +77,12 @@ export async function POST(request: Request) {
   // Deterministic safety notice cannot be overridden by a user or model instruction.
   if (notice) return new Response(notice, { headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" } });
 
-  if (!allow(`chat:${clientKey()}`, 30)) {
+  // 로그인 확인과 하루 사용량 차감. 위험 증상 안내는 위에서 이미 이 문을 거치지 않고 반환했다.
+  const gate = await gateAI(request, "chat");
+  if (!gate.ok) return gate.response;
+
+  if (!allow(`chat:${gate.key}`, 30)) {
+    await gate.refund();
     return failure({
       status: 429,
       code: "rate_limited",
@@ -85,6 +91,7 @@ export async function POST(request: Request) {
   }
 
   if (!hasApiKey()) {
+    await gate.refund();
     // 키가 없어도 위험 증상 안내는 반드시 전달한다.
     return json(
       {
@@ -97,7 +104,10 @@ export async function POST(request: Request) {
   }
 
   const release = acquireAI();
-  if (!release) return failure({ status: 429, code: "rate_limited", message: "AI가 다른 요청을 처리하고 있어요. 잠시 뒤 시도해 주세요." });
+  if (!release) {
+    await gate.refund();
+    return failure({ status: 429, code: "rate_limited", message: "AI가 다른 요청을 처리하고 있어요. 잠시 뒤 시도해 주세요." });
+  }
   const signal = aiSignal(request);
   const model = getModel();
   let stream: ReturnType<ReturnType<typeof getClient>["beta"]["messages"]["stream"]>;
@@ -122,6 +132,7 @@ export async function POST(request: Request) {
   } catch (error) {
     abortUpstream?.();
     release();
+    await gate.refund();
     const failed = mapError(error);
     console.error("[chat] upstream error", failed.code);
     return failure(failed);
